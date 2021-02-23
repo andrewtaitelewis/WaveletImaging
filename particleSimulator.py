@@ -3,6 +3,7 @@ This code is going to be used to simulate a particle moving in or around a map, 
 '''
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy as scp
 #============================================
 #Functions
 #============================================
@@ -221,6 +222,12 @@ def centroidFitter(threshold,imageSeries,x,y):
 
 
     return xCoords,yCoords
+
+#My least squares algoritm
+def leastSquaresFitter():
+
+
+
 
 
 
