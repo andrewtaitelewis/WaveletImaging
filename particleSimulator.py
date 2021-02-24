@@ -311,15 +311,11 @@ def gauss2dFlat(X,xCenter,yCenter,sigma):
 
 firstFrame = (zs[15].flatten())
 
-#now fit it,
+#now fit it, our guess
 popt, cov = optimize.curve_fit(gauss2dFlat,(x,y),firstFrame)
-
 X = (x,y)
 guess = gauss2d(X,popt[0],popt[1],popt[2])
-#plt.contourf(x,y,zs[10])
-plt.contourf(x,y,zs[15] - guess)
-plt.colorbar()
-plt.show()
+
 
 xTrack, yTrack = [],[]
 for i in zs:
@@ -352,8 +348,8 @@ xSteps,ySteps = np.asarray(xSteps),np.asarray(ySteps)
 xTrack,yTrack = np.asarray(xTrack), np.asarray(yTrack)
 NonLinearResiduals = np.sqrt((xSteps-xTrack)**2 + (ySteps-yTrack)**2)
 plt.legend()
-plt.plot(range(len(xSteps)),CentroidResiduals, label = 'Centroid Residuals')
-plt.plot(range(len(xSteps)),NonLinearResiduals, label = "Non Linear Residuals")
+plt.plot(range(len(xSteps)),CentroidResiduals, '.', label = 'Centroid Residuals')
+plt.plot(range(len(xSteps)),NonLinearResiduals, '.', label = "Non Linear Residuals")
 plt.legend()
 plt.title('Residuals of Centroid Method')
 plt.axhline(0)
