@@ -3,11 +3,12 @@ This code is going to be used to simulate a particle moving in or around a map, 
 '''
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy as scp
+from scipy import optimize
 #============================================
 #Functions
 #============================================
-def gauss2d(xCenter,yCenter,x,y,sigma):
+def gauss2d(indep,xCenter,yCenter,sigma):
+    x,y = indep
     xcomp = ((x-xCenter)**2)/(2*sigma**2) 
     ycomp = ((y-yCenter)**2)/(2*sigma**2)
     
@@ -185,7 +186,8 @@ def dataSimulator(xBounds,yBounds,grid,steps):
         returnedZs = np.random.poisson(1,(xsize,ysize))
         returnedZs = returnedZs/np.amax(returnedZs)
         #Plot a gaussian
-        returnedZs += 3*gauss2d(i,j,x,y,1)
+        a = (x,y)
+        returnedZs += 3*gauss2d(a,i,j,1)
         arrayZs.append(returnedZs)
     
     return arrayZs
@@ -223,12 +225,6 @@ def centroidFitter(threshold,imageSeries,x,y):
 
     return xCoords,yCoords
 
-#My least squares algoritm
-def leastSquaresFitter():
-
-
-
-
 
 
     
@@ -252,12 +248,12 @@ gridSize = (100,100)
 xs,ys= (boxMapMaker(xBounds,yBounds,9))
 xSteps,ySteps = walkerWithBox(150,0.5,xs,ys,.05,(0,0))
 
-interactivePlotter(xs,ys,xSteps,ySteps)
+#interactivePlotter(xs,ys,xSteps,ySteps)
 
 
 
 zs = (dataSimulator(xBounds,yBounds,gridSize,(xSteps,ySteps)))
-print(np.shape(zs))
+
 #Plot counturf
 
 x = np.linspace(xBounds[0],xBounds[1],gridSize[0])
@@ -269,7 +265,10 @@ x = np.linspace(xBounds[0],xBounds[1],gridSize[0])
 y = np.linspace(yBounds[0],yBounds[1],gridSize[1])
 xTrack, yTrack = centroidFitter(1,zs,x,y)
 trackedCoords = (zip(xTrack,yTrack))
-print(xTrack)
+
+x,y = np.meshgrid(x,y)
+
+
 
 plt.ion()
 for i,j in zip(zs,trackedCoords):
@@ -286,6 +285,7 @@ plt.ioff()
 
 plt.show()
 #convert to numpy array 
+
 xSteps,ySteps = np.asarray(xSteps),np.asarray(ySteps)
 xTrack,yTrack = np.asarray(xTrack), np.asarray(yTrack)
 plt.plot(xSteps,xSteps-xTrack, 'o', label = 'x Residuals')
@@ -294,4 +294,67 @@ plt.legend()
 plt.title('Residuals of Centroid Method')
 plt.axhline(0)
 
+plt.show()
+CentroidResiduals = np.sqrt((xSteps-xTrack)**2 + (ySteps-yTrack)**2)
+
+#Now time for our non linear least squares fit
+
+#2d gaussian function to determine coefficients
+def gauss2dFlat(X,xCenter,yCenter,sigma):
+    x,y = X
+    
+    xcomp = ((x-xCenter)**2)/(2*sigma**2) 
+    ycomp = ((y-yCenter)**2)/(2*sigma**2)
+    result = np.exp(-(xcomp+ycomp))
+  
+    return result.flatten()
+
+firstFrame = (zs[15].flatten())
+
+#now fit it,
+popt, cov = optimize.curve_fit(gauss2dFlat,(x,y),firstFrame)
+
+X = (x,y)
+guess = gauss2d(X,popt[0],popt[1],popt[2])
+#plt.contourf(x,y,zs[10])
+plt.contourf(x,y,zs[15] - guess)
+plt.colorbar()
+plt.show()
+
+xTrack, yTrack = [],[]
+for i in zs:
+    if len(xTrack) == 0:
+        prevX,prevY = 0,0
+    else:
+        prevX,prevY = xTrack[-1],yTrack[-1]
+    popt, cov = optimize.curve_fit(gauss2dFlat,(x,y),i.flatten(),[prevX,prevY,1])
+    xTrack.append(popt[0])
+    yTrack.append(popt[1])
+
+trackedCoords = (zip(xTrack,yTrack))
+
+
+plt.ion()
+for i,j in zip(zs,trackedCoords):
+    xcoord,ycoord = j
+    plt.clf()
+    plt.contourf(x,y,i)
+    plt.colorbar()
+    plt.plot(xcoord,ycoord,'o',color = 'orange')
+    plt.draw()
+    plt.pause(0.01)
+
+#Residual
+plt.ioff()
+plt.show()
+#Comparing the 
+xSteps,ySteps = np.asarray(xSteps),np.asarray(ySteps)
+xTrack,yTrack = np.asarray(xTrack), np.asarray(yTrack)
+NonLinearResiduals = np.sqrt((xSteps-xTrack)**2 + (ySteps-yTrack)**2)
+plt.legend()
+plt.plot(range(len(xSteps)),CentroidResiduals, label = 'Centroid Residuals')
+plt.plot(range(len(xSteps)),NonLinearResiduals, label = "Non Linear Residuals")
+plt.legend()
+plt.title('Residuals of Centroid Method')
+plt.axhline(0)
 plt.show()
