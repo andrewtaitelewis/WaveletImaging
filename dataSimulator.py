@@ -23,7 +23,6 @@ def brownianChange(xPrev,yPrev):
     yStep = np.random.normal(0.0,1.0)
     return xPrev+xStep, yPrev+yStep
 
-print(np.random.rand())
 def probMover(xCoords,yCoords, xCur,yCur):
     '''
     Params:
@@ -68,8 +67,6 @@ def probMover(xCoords,yCoords, xCur,yCur):
     
     return xCur,yCur
 
-
-
 def metropolisHasting(Func, currentPosition, candidatePosition):
     '''
     A walker initalzied with the metropolis hastings algorithm
@@ -83,7 +80,7 @@ def metropolisHasting(Func, currentPosition, candidatePosition):
     '''
     print(Func(currentPosition))
 
-metropolisHasting(add,[1,2],4)
+#metropolisHasting(,[1,2],4)
 
 #=============================================================
 #Trying out my walker
@@ -119,7 +116,7 @@ for i in range(xCoords):
         grid[i][j] = random.randint(0,2)
 #Now plot our initial grid
 plt.ion()
-runs = 2000
+runs = 20
 for t in range(runs):
     for i in range(xCoords):
         for j in range(yCoords):
